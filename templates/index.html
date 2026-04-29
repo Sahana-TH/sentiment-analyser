@@ -1,147 +1,750 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="light">
 <head>
-    <title>Sentiment Analyser</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentimentAI — Analyse Any Text</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #f0ede8;
+            --surface: #ffffff;
+            --surface2: #f7f5f2;
+            --border: #e2ddd8;
+            --text: #1a1714;
+            --text-muted: #7a746e;
+            --accent: #2d6a4f;
+            --accent-light: #d8f3dc;
+            --negative: #c1121f;
+            --negative-light: #ffe5e7;
+            --btn-grad: linear-gradient(135deg, #2d6a4f, #40916c);
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+            --radius: 20px;
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3347;
+            --text: #f0ede8;
+            --text-muted: #8b92a9;
+            --accent: #52b788;
+            --accent-light: #1b3a2e;
+            --negative: #ef5350;
+            --negative-light: #2d1a1a;
+            --btn-grad: linear-gradient(135deg, #40916c, #52b788);
+            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 650px;
-            margin: 60px auto;
-            background: #f4f4f4;
-            text-align: center;
-            padding: 0 20px;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background var(--transition), color var(--transition);
+            overflow-x: hidden;
         }
-        h1 { color: #333; margin-bottom: 5px; }
-        p { color: #666; }
-        textarea {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            resize: none;
-            box-sizing: border-box;
+
+        /* Background decoration */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-light) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0.6;
+            z-index: 0;
         }
-        button {
-            margin-top: 12px;
-            padding: 10px 30px;
-            font-size: 16px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -200px;
+            left: -200px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--negative-light) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 0;
         }
-        button:hover { background: #45a049; }
-        .result-box {
-            margin-top: 25px;
-            padding: 20px;
-            border-radius: 10px;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+            position: relative;
+            z-index: 1;
         }
-        .result {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-        }
-        .confidence {
-            font-size: 16px;
-            color: #888;
-            margin-top: 6px;
-        }
-        .bar-bg {
-            background: #eee;
-            border-radius: 20px;
-            height: 14px;
-            margin: 12px auto;
-            width: 80%;
-        }
-        .bar-fill {
-            height: 14px;
-            border-radius: 20px;
-            transition: width 0.5s ease;
-        }
-        .entered {
-            color: #999;
-            font-style: italic;
-            font-size: 14px;
-            margin-top: 8px;
-        }
-        .history {
-            margin-top: 35px;
-            text-align: left;
-        }
-        .history h3 {
-            color: #555;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 8px;
-        }
-        .history-item {
-            background: white;
-            border-radius: 8px;
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+
+        /* Header */
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 56px;
+            animation: fadeDown 0.6s ease both;
         }
-        .history-text {
-            color: #444;
-            font-size: 14px;
-            flex: 1;
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .history-result {
-            font-weight: bold;
-            font-size: 14px;
-            margin-left: 10px;
-            white-space: nowrap;
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--btn-grad);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(45,106,79,0.3);
         }
-        .history-conf {
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent);
+        }
+
+        /* Dark mode toggle */
+        .theme-toggle {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            padding: 6px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-muted);
+            transition: all var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .toggle-icon { font-size: 16px; }
+
+        /* Hero section */
+        .hero {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeUp 0.7s ease 0.1s both;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid var(--accent);
+            opacity: 0.8;
+        }
+
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(36px, 6vw, 56px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .highlight {
+            color: var(--accent);
+            position: relative;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 17px;
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 440px;
+            margin: 0 auto;
+        }
+
+        /* Main card */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 36px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid var(--border);
+            margin-bottom: 24px;
+            transition: background var(--transition), border-color var(--transition);
+            animation: fadeUp 0.7s ease 0.2s both;
+        }
+
+        /* Textarea */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-label span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .char-count {
             font-size: 12px;
-            color: #aaa;
-            margin-left: 8px;
+            color: var(--text-muted);
+            transition: color var(--transition);
         }
+
+        .char-count.warn { color: #f4a261; }
+        .char-count.limit { color: var(--negative); }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            max-height: 300px;
+            padding: 18px 20px;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            color: var(--text);
+            resize: none;
+            outline: none;
+            transition: all var(--transition);
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+
+        textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        textarea:focus {
+            border-color: var(--accent);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px var(--accent-light);
+        }
+
+        /* Button */
+        .btn-analyse {
+            width: 100%;
+            padding: 16px;
+            background: var(--btn-grad);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(45,106,79,0.35);
+        }
+
+        .btn-analyse::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-analyse:hover::before { left: 100%; }
+
+        .btn-analyse:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(45,106,79,0.45);
+        }
+
+        .btn-analyse:active { transform: translateY(0); }
+
+        .btn-analyse.loading { pointer-events: none; opacity: 0.85; }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .btn-analyse.loading .spinner { display: block; }
+        .btn-analyse.loading .btn-text { opacity: 0.8; }
+
+        /* Result card */
+        .result-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid var(--border);
+            margin-bottom: 24px;
+            animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+            display: none;
+        }
+
+        .result-card.show { display: block; }
+        .result-card.positive { border-color: var(--accent); }
+        .result-card.negative { border-color: var(--negative); }
+
+        .result-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .result-emoji {
+            font-size: 52px;
+            line-height: 1;
+            animation: bounce 0.5s ease 0.3s both;
+        }
+
+        .result-info { flex: 1; }
+
+        .result-label {
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .result-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .result-card.positive .result-text { color: var(--accent); }
+        .result-card.negative .result-text { color: var(--negative); }
+
+        .result-sentence {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Confidence meter */
+        .confidence-section { margin-bottom: 0; }
+
+        .confidence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .confidence-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .confidence-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .result-card.positive .confidence-value { color: var(--accent); }
+        .result-card.negative .confidence-value { color: var(--negative); }
+
+        .progress-track {
+            background: var(--surface2);
+            border-radius: 50px;
+            height: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 50px;
+            width: 0;
+            transition: width 1s cubic-bezier(0.4,0,0.2,1) 0.3s;
+        }
+
+        .result-card.positive .progress-fill {
+            background: linear-gradient(90deg, #40916c, #74c69d);
+        }
+
+        .result-card.negative .progress-fill {
+            background: linear-gradient(90deg, #c1121f, #e63946);
+        }
+
+        /* Meter dots */
+        .meter-dots {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+        }
+
+        .meter-dots span {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* History */
+        .history-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1.5px solid var(--border);
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .history-header h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .history-badge {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 2px 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-items { display: flex; flex-direction: column; gap: 10px; }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--surface2);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .history-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .history-dot.positive { background: var(--accent); }
+        .history-dot.negative { background: var(--negative); }
+
+        .history-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .history-sentiment {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 50px;
+        }
+
+        .history-sentiment.positive {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .history-sentiment.negative {
+            background: var(--negative-light);
+            color: var(--negative);
+        }
+
+        .history-conf {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .empty-history {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 20px;
+        }
+
+        /* Animations */
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0); }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer span { color: var(--accent); font-weight: 600; }
     </style>
 </head>
 <body>
-    <h1>💬 Sentiment Analyser</h1>
-    <p>Type a sentence and find out if it's Positive or Negative</p>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🧠</div>
+                <div class="logo-text">Sentiment<span>AI</span></div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="toggle-icon" id="themeIcon">🌙</span>
+                <span id="themeLabel">Dark mode</span>
+            </button>
+        </header>
 
-    <form method="POST" action="/predict">
-        <textarea name="text" rows="4"
-          placeholder="Type your sentence here...">{{ text or '' }}</textarea>
-        <br>
-        <button type="submit">Analyse</button>
-    </form>
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-badge">✨ Powered by Machine Learning</div>
+            <h1>Understand the<br><span class="highlight">mood behind</span><br>any text</h1>
+            <p>Paste any sentence and instantly discover whether it carries a positive or negative sentiment — with confidence scoring.</p>
+        </div>
 
-    {% if result %}
-    <div class="result-box">
-        <div class="result">{{ result }}</div>
-        <div class="bar-bg">
-            <div class="bar-fill"
-                 style="width: {{ confidence }}%;
-                 background: {{ '#4CAF50' if color == 'green' else '#e53935' }};">
+        <!-- Input Card -->
+        <div class="card">
+            <form method="POST" action="/predict" id="analyseForm">
+                <div class="input-wrapper">
+                    <div class="input-label">
+                        <span>Your Text</span>
+                        <span class="char-count" id="charCount">0 / 500</span>
+                    </div>
+                    <textarea
+                        name="text"
+                        id="textInput"
+                        maxlength="500"
+                        placeholder="Type or paste any sentence here... e.g. 'I absolutely loved this experience!'"
+                        oninput="handleInput(this)"
+                    >{{ text or '' }}</textarea>
+                </div>
+                <button type="submit" class="btn-analyse" id="analyseBtn" onclick="startLoading()">
+                    <div class="spinner" id="spinner"></div>
+                    <span class="btn-text">✦ Analyse Sentiment</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Result Card -->
+        {% if result %}
+        <div class="result-card show {{ 'positive' if 'Positive' in result else 'negative' }}" id="resultCard">
+            <div class="result-top">
+                <div class="result-emoji">{{ '🌟' if 'Positive' in result else '💔' }}</div>
+                <div class="result-info">
+                    <div class="result-label">Sentiment detected</div>
+                    <div class="result-text">{{ 'Positive' if 'Positive' in result else 'Negative' }}</div>
+                    <div class="result-sentence">"{{ text }}"</div>
+                </div>
+            </div>
+            <div class="confidence-section">
+                <div class="confidence-header">
+                    <span class="confidence-label">Confidence Score</span>
+                    <span class="confidence-value">{{ confidence }}%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="meter-dots">
+                    <span>0%</span>
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
+                </div>
             </div>
         </div>
-        <div class="confidence">Confidence: {{ confidence }}%</div>
-        <div class="entered">You entered: "{{ text }}"</div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    {% if history %}
-    <div class="history">
-        <h3>📋 Recent Analyses</h3>
-        {% for item in history %}
-        <div class="history-item">
-            <div class="history-text">{{ item.text[:60] }}{% if item.text|length > 60 %}...{% endif %}</div>
-            <div class="history-result">{{ item.result }}</div>
-            <div class="history-conf">{{ item.confidence }}%</div>
+        <!-- History Card -->
+        <div class="history-card">
+            <div class="history-header">
+                <span>📋</span>
+                <h3>Recent Analyses</h3>
+                {% if history %}
+                <span class="history-badge">{{ history|length }}</span>
+                {% endif %}
+            </div>
+            <div class="history-items">
+                {% if history %}
+                    {% for item in history %}
+                    <div class="history-item" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+                        <div class="history-dot {{ 'positive' if 'Positive' in item.result else 'negative' }}"></div>
+                        <div class="history-text">{{ item.text[:55] }}{% if item.text|length > 55 %}...{% endif %}</div>
+                        <div class="history-meta">
+                            <span class="history-sentiment {{ 'positive' if 'Positive' in item.result else 'negative' }}">
+                                {{ 'Positive' if 'Positive' in item.result else 'Negative' }}
+                            </span>
+                            <span class="history-conf">{{ item.confidence }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-history">✦ Your analyses will appear here</div>
+                {% endif %}
+            </div>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
+        <div class="footer">
+            Built with <span>Flask + Sklearn</span> · 95% accuracy · Deployed on Render
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+            document.getElementById('themeLabel').textContent = isDark ? 'Dark mode' : 'Light mode';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeIcon').textContent = '☀️';
+            document.getElementById('themeLabel').textContent = 'Light mode';
+        }
+
+        // Character count
+        function handleInput(el) {
+            const len = el.value.length;
+            const counter = document.getElementById('charCount');
+            counter.textContent = `${len} / 500`;
+            counter.className = 'char-count' + (len > 450 ? ' limit' : len > 350 ? ' warn' : '');
+            // Auto resize
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 300) + 'px';
+        }
+
+        // Loading state
+        function startLoading() {
+            const btn = document.getElementById('analyseBtn');
+            const input = document.getElementById('textInput');
+            if (!input.value.trim()) return;
+            btn.classList.add('loading');
+            document.querySelector('.btn-text').textContent = 'Analysing...';
+        }
+
+        // Animate progress bar on load
+        window.addEventListener('load', () => {
+            // Init char count
+            const input = document.getElementById('textInput');
+            if (input && input.value) handleInput(input);
+
+            // Animate progress bar
+            const fill = document.getElementById('progressFill');
+            if (fill) {
+                setTimeout(() => {
+                    fill.style.width = fill.closest('.result-card')
+                        ?.querySelector('.confidence-value')
+                        ?.textContent?.replace('%', '') + '%' || '0%';
+                }, 200);
+            }
+        });
+    </script>
 </body>
 </html>
