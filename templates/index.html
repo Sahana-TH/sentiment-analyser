@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentiment Analyser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 650px;
+            margin: 60px auto;
+            background: #f4f4f4;
+            text-align: center;
+            padding: 0 20px;
+        }
+        h1 { color: #333; margin-bottom: 5px; }
+        p { color: #666; }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: none;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 12px;
+            padding: 10px 30px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background: #45a049; }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .result {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .confidence {
+            font-size: 16px;
+            color: #888;
+            margin-top: 6px;
+        }
+        .bar-bg {
+            background: #eee;
+            border-radius: 20px;
+            height: 14px;
+            margin: 12px auto;
+            width: 80%;
+        }
+        .bar-fill {
+            height: 14px;
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+        .entered {
+            color: #999;
+            font-style: italic;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .history {
+            margin-top: 35px;
+            text-align: left;
+        }
+        .history h3 {
+            color: #555;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .history-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-text {
+            color: #444;
+            font-size: 14px;
+            flex: 1;
+        }
+        .history-result {
+            font-weight: bold;
+            font-size: 14px;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .history-conf {
+            font-size: 12px;
+            color: #aaa;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>💬 Sentiment Analyser</h1>
+    <p>Type a sentence and find out if it's Positive or Negative</p>
+
+    <form method="POST" action="/predict">
+        <textarea name="text" rows="4"
+          placeholder="Type your sentence here...">{{ text or '' }}</textarea>
+        <br>
+        <button type="submit">Analyse</button>
+    </form>
+
+    {% if result %}
+    <div class="result-box">
+        <div class="result">{{ result }}</div>
+        <div class="bar-bg">
+            <div class="bar-fill"
+                 style="width: {{ confidence }}%;
+                 background: {{ '#4CAF50' if color == 'green' else '#e53935' }};">
+            </div>
+        </div>
+        <div class="confidence">Confidence: {{ confidence }}%</div>
+        <div class="entered">You entered: "{{ text }}"</div>
+    </div>
+    {% endif %}
+
+    {% if history %}
+    <div class="history">
+        <h3>📋 Recent Analyses</h3>
+        {% for item in history %}
+        <div class="history-item">
+            <div class="history-text">{{ item.text[:60] }}{% if item.text|length > 60 %}...{% endif %}</div>
+            <div class="history-result">{{ item.result }}</div>
+            <div class="history-conf">{{ item.confidence }}%</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</body>
+</html>
